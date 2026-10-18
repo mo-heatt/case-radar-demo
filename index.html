@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maingau Case Radar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Source+Serif+4:ital,opsz,wght@1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #ecefea;      /* page: pale utility-form grey-green */
+  --sheet: #ffffff;
+  --ink: #1e2b30;
+  --muted: #5d6a70;
+  --rule: #d3dad5;
+  --harm: #a3201f;       /* money leaving or dunning running */
+  --harm-soft: #f7e4e2;
+  --act: #0f5257;        /* things the team lead can do */
+  --act-soft: #dcebea;
+  --done: #2e6b45;
+  --mark: rgba(243, 211, 74, 0.55); /* highlighter on the customer's own words */
+  --done-soft: #e6f0ea;
+  --on-act: #ffffff;
+  --hover: rgba(255, 255, 255, 0.5);
+  --sans: 'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
+  --serif: 'Source Serif 4', Georgia, serif;
+}
+
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #151b1d; --sheet: #1d2528; --ink: #e3e8e5; --muted: #9ba7aa; --rule: #2f3a3d;
+  --harm: #e8665f; --harm-soft: #3a1e1d; --act: #55b5b2; --act-soft: #1d3b3c; --done: #72c493; --done-soft: #1c3426;
+  --on-act: #0d1c1d; --hover: rgba(255, 255, 255, 0.04); --mark: rgba(243, 211, 74, 0.28); color-scheme: dark; } }
+:root[data-theme="dark"] { --paper: #151b1d; --sheet: #1d2528; --ink: #e3e8e5; --muted: #9ba7aa; --rule: #2f3a3d;
+  --harm: #e8665f; --harm-soft: #3a1e1d; --act: #55b5b2; --act-soft: #1d3b3c; --done: #72c493; --done-soft: #1c3426;
+  --on-act: #0d1c1d; --hover: rgba(255, 255, 255, 0.04); --mark: rgba(243, 211, 74, 0.28); color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.5 var(--sans); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--act); outline-offset: 2px; }
+
+.top { display: flex; align-items: baseline; gap: 1.25rem; padding: 1.25rem 1.5rem 0.75rem; }
+.top h1 { margin: 0; font-size: 1.5rem; }
+.summary { margin: 0; color: var(--muted); }
+.summary strong { color: var(--harm); }
+
+.layout { display: grid; grid-template-columns: minmax(300px, 380px) 1fr; gap: 0; min-height: calc(100vh - 7rem); }
+
+/* ── queue ── */
+.queue { padding: 0 0 2rem; border-right: 1px solid var(--rule); }
+.group { margin: 1.25rem 1.5rem 0.25rem; font-size: 0.95rem; font-weight: 700; display: flex; justify-content: space-between; }
+.group.worse { color: var(--harm); }
+.group span { font-weight: 400; color: var(--muted); }
+.row {
+  display: grid; grid-template-columns: 1fr auto; gap: 0.15rem 1rem; width: 100%;
+  padding: 0.75rem 1.5rem; border: 0; border-left: 4px solid transparent; background: none; text-align: left; cursor: pointer;
+}
+.row + .row { border-top: 1px solid var(--rule); }
+.row:hover { background: var(--hover); }
+.row[aria-current='true'] { background: var(--sheet); border-left-color: var(--act); }
+.row.resolved { opacity: 0.55; }
+.row .name { font-weight: 700; }
+.row .days { font-variant-numeric: tabular-nums; color: var(--muted); }
+.row .problem { grid-column: 1 / -1; font-size: 0.92rem; color: var(--muted); }
+.row .track { grid-column: 1 / -1; margin-top: 0.35rem; }
+.row .state { grid-column: 1 / -1; font-size: 0.85rem; color: var(--done); font-weight: 700; }
+
+/* ── detail ── */
+.detail { background: var(--sheet); padding: 1.75rem 2.25rem 3rem; max-width: 900px; }
+.who { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 1.25rem; }
+.who h2 { margin: 0; font-size: 1.75rem; line-height: 1.2; }
+.who .facts { color: var(--muted); display: flex; gap: 1rem; flex-wrap: wrap; }
+.headline { margin: 0.5rem 0 0; font-size: 1.15rem; }
+.headline .money { color: var(--harm); font-weight: 700; }
+
+.bigtrack { margin: 1.5rem 0 0.25rem; }
+.legend { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; font-size: 0.85rem; color: var(--muted); }
+.legend svg { vertical-align: -2px; margin-right: 0.3rem; }
+
+.problem-block { margin-top: 2rem; }
+.problem-block h3 { margin: 0; font-size: 1.4rem; line-height: 1.3; max-width: 42ch; }
+.quote { margin: 0.75rem 0 0; font: italic 1.15rem/1.6 var(--serif); max-width: 60ch; }
+.quote mark { background: linear-gradient(transparent 35%, var(--mark) 35%); color: inherit; padding: 0 0.1em; }
+.source { display: block; margin-top: 0.25rem; font: 0.85rem var(--sans); color: var(--muted); }
+.missing { color: var(--muted); }
+
+h4 { margin: 2.25rem 0 0.6rem; font-size: 1rem; }
+.harm { margin-top: 1.75rem; border: 2px solid var(--harm); border-radius: 6px; padding: 1rem 1.25rem; background: var(--harm-soft); }
+.harm h4 { margin: 0 0 0.6rem; color: var(--harm); }
+.harm.calm { border-color: var(--rule); background: var(--paper); }
+.harm.stopped { border-color: var(--done); background: var(--done-soft); }
+.harm.stopped h4 { color: var(--done); }
+.harm.calm h4 { color: var(--ink); }
+.harm-item { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
+.harm-item + .harm-item { margin-top: 0.75rem; }
+.harm-item p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+
+.btn { border: 2px solid var(--act); background: var(--act); color: var(--on-act); border-radius: 6px; padding: 0.5rem 0.9rem; font-weight: 700; cursor: pointer; }
+.btn.quiet { background: var(--sheet); color: var(--act); }
+.btn.danger { border-color: var(--harm); background: var(--harm); }
+.btn:hover { filter: brightness(1.1); }
+.done { color: var(--done); font-weight: 700; }
+.undo { border: 0; background: none; color: var(--act); text-decoration: underline; cursor: pointer; padding: 0; }
+
+.steps { list-style: none; margin: 0; padding: 0; }
+.steps li { display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.35rem 0; }
+.steps input { width: 1.15rem; height: 1.15rem; margin-top: 0.2rem; accent-color: var(--act); }
+.steps label.checked { text-decoration: line-through; color: var(--muted); }
+.by-ai { font-size: 0.85rem; color: var(--muted); margin: -0.4rem 0 0.5rem; }
+.owners { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; align-items: center; }
+
+.history { list-style: none; margin: 0; padding: 0; border-left: 2px solid var(--rule); }
+.history li { position: relative; padding: 0 0 1rem 1.25rem; }
+.history li::before { content: ''; position: absolute; left: -6px; top: 0.45rem; width: 10px; height: 10px; border-radius: 50%; background: var(--sheet); border: 2px solid var(--muted); }
+.history li.answered::before { background: var(--done); border-color: var(--done); }
+.history li.harmful::before { background: var(--harm); border-color: var(--harm); border-radius: 2px; }
+.history li.system::before { border-radius: 2px; }
+.history .when { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 0.9rem; margin-right: 0.5rem; }
+.history .what { font-weight: 700; }
+.history li.harmful .what { color: var(--harm); }
+.history .said { margin: 0.2rem 0 0; font: italic 1rem/1.55 var(--serif); max-width: 62ch; }
+.history .said.note { font: 0.95rem/1.5 var(--sans); color: var(--muted); }
+
+.why { margin: 0; padding-left: 1.1rem; color: var(--muted); font-size: 0.92rem; }
+.foot { padding: 1rem 1.5rem 1.5rem; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--rule); }
+.empty { padding: 3rem 2rem; max-width: 40ch; }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .queue { border-right: 0; border-bottom: 1px solid var(--rule); }
+  .detail { padding: 1.5rem 1rem 2.5rem; }
+  .top { flex-direction: column; gap: 0.25rem; padding: 1rem; }
+  .row, .group { padding-left: 1rem; padding-right: 1rem; margin-left: 0; margin-right: 0; }
+  .group { padding-top: 0.5rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .done { animation: settle 300ms ease-out; }
+  @keyframes settle { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+}
+
+.demo-note { margin: 0; padding: 0.6rem 1.5rem; background: var(--act-soft); color: var(--ink); font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: baseline; }
+.to-list { display: none; }
+@media (max-width: 900px) {
+  .demo-note { padding: 0.6rem 1rem; }
+  .to-list { display: inline-block; margin-bottom: 1rem; }
+  .who h2 { font-size: 1.5rem; }
+}
+
+</style>
+</head>
+<body>
+<p class="demo-note"><span><strong>Demo with invented customers.</strong> Click anything: your clicks are saved only in your own browser and reach no real system.</span><button class="undo" id="clear-clicks">Clear my clicks</button></p>
+<header class="top">
+  <h1>Stuck cases</h1>
+  <p id="summary" class="summary"></p>
+</header>
+<main class="layout">
+  <nav class="queue" id="queue" aria-label="Stuck customers"></nav>
+  <section class="detail" id="detail" aria-live="polite"></section>
+</main>
+<footer class="foot">Maingau Case Radar, practice prototype for Futury Build Days. Customers, messages and amounts are invented. AI lines were written by gpt-5-mini from pseudonymised messages.</footer>
+<script id="cards-data" type="application/json">{"as_of":"2026-10-15","model":"gpt-5-mini","cards":[{"customer_id":"C022","name":"Melanie Hoffmann","products":["power"],"status":"active","waiting_since":"2026-07-04","days_waiting":103,"money":[{"kind":"demanded","amount_eur":303.1,"text":"€303 at debt collection"}],"billing_stage":"debt_collection","if_ignored":"already with a debt collection agency since 10.09.","so_far":{"contacts":5,"channels":{"phone_ai":2,"web_form":1,"email":2},"dropped_calls":0,"human_contacts":0,"tickets_open":3,"tickets_closed_by_template":1,"last_contact":"2026-09-11T08:00"},"harm_actions":[{"id":"recall_debt_collection","label":"Recall from debt collection","detail":"€303 handed to the agency on 10.09."}],"getting_worse":true,"timeline":[{"at":"2026-07-01T06:00","kind":"billing","label":"Invoice","amount_eur":312.4,"note":"Rechnung Vertrag 1 – Lieferstelle Bahnhofstr. 12","harmful":false},{"at":"2026-07-01T06:00","kind":"billing","label":"Invoice","amount_eur":298.1,"note":"Rechnung Vertrag 2 – gleiche Lieferstelle Bahnhofstr. 12","harmful":false},{"at":"2026-07-04T17:22","kind":"contact","label":"voice assistant","outcome":"ticket created","answered":false,"text":"Ich habe zwei Rechnungen für dieselbe Wohnung bekommen. Das muss ein Fehler sein.","agent_note":false},{"at":"2026-07-05T06:00","kind":"ticket","label":"Ticket closed after a template reply"},{"at":"2026-07-12T10:03","kind":"contact","label":"web form","outcome":"automatic reply","answered":false,"text":"Bitte um Rückruf: Ich werde doppelt beliefert und abgerechnet (zwei Verträge, eine Wohnung). Bitte klären.","agent_note":false},{"at":"2026-07-20T06:00","kind":"billing","label":"Payment reminder","amount_eur":298.1,"note":"1. Mahnung Vertrag 2","harmful":true},{"at":"2026-07-21T19:40","kind":"contact","label":"email","outcome":"automatic reply","answered":false,"text":"Ich habe die doppelte Rechnung schon zweimal reklamiert. Warum bekomme ich jetzt eine Mahnung?","agent_note":false},{"at":"2026-08-05T06:00","kind":"billing","label":"Payment reminder","amount_eur":303.1,"note":"2. Mahnung inkl. 5 € Mahngebühr","harmful":true},{"at":"2026-08-06T12:10","kind":"contact","label":"voice assistant","outcome":"template reply","answered":false,"text":"Ich habe eine zweite Mahnung für eine Rechnung bekommen, die falsch ist. Ich möchte mit einem Menschen sprechen.","agent_note":false},{"at":"2026-09-10T06:00","kind":"billing","label":"Handed to debt collection","amount_eur":303.1,"note":"Übergabe an Inkasso","harmful":true},{"at":"2026-09-11T08:00","kind":"contact","label":"email","outcome":"automatic reply","answered":false,"text":"Jetzt kommt ein Inkassoschreiben für Ihren eigenen Fehler. Ich habe mehrfach angerufen und geschrieben. Das ist unseriös.","agent_note":false}],"as_of":"2026-10-15","why_flagged":["3 unanswered contacts in 17 days (04.07.–21.07.)","payment reminder while a complaint is unanswered (20.07.)","payment reminder while a complaint is unanswered (05.08.)","debt collection while a complaint is unanswered (10.09.)"],"related_contact_ids":["K0039","K0046","K0051","K0058","K0087"],"ai":{"issue":"wrong_debit","problem":"Two contracts billed for the same apartment","customer_quote":"Ich werde doppelt beliefert und abgerechnet (zwei Verträge, eine Wohnung).","next_steps":["Identify and close the duplicate contract for the apartment","Refund or offset all charges from the duplicate contract","Confirm to customer that the duplicate contract was closed"],"related_messages":["M1","M2","M3","M4","M5"],"related_contact_ids":["K0039","K0046","K0051","K0058","K0087"],"quote_source":"customer"}},{"customer_id":"C038","name":"Franz Neumann","products":["power","gas"],"status":"active","waiting_since":"2026-04-14","days_waiting":184,"money":[{"kind":"demanded","amount_eur":742,"text":"€742 in payment reminder"}],"billing_stage":"reminder","if_ignored":"next dunning step is debt collection","so_far":{"contacts":5,"channels":{"phone_human":1,"email":3,"phone_ai":1},"dropped_calls":0,"human_contacts":1,"tickets_open":4,"tickets_closed_by_template":0,"last_contact":"2026-08-12T17:30"},"harm_actions":[{"id":"pause_reminders","label":"Pause payment reminders","detail":"€742 reminder sent 15.07., next step is debt collection"}],"getting_worse":true,"timeline":[{"at":"2026-04-10T06:00","kind":"billing","label":"Invoice","amount_eur":742,"note":"Jahresrechnung 2025 – Zählerstand geschätzt","harmful":false},{"at":"2026-04-14T10:20","kind":"contact","label":"phone (human)","outcome":"forwarded","answered":false,"text":"Kunde bestreitet die Jahresrechnung, die Ablesung sei geschätzt. Tatsächlicher Stand liegt niedriger. An Abrechnung weitergeleitet.","agent_note":true},{"at":"2026-05-05T15:00","kind":"contact","label":"email","outcome":"automatic reply","answered":false,"text":"Der Netzbetreiber hat mir den tatsächlichen Zählerstand bestätigt (Bestätigung anbei). Bitte korrigieren Sie die Jahresrechnung 2025.","agent_note":false},{"at":"2026-06-02T11:30","kind":"contact","label":"voice assistant","outcome":"template reply","answered":false,"text":"Ich warte seit April auf die Korrektur meiner Jahresrechnung, die auf einer Schätzung beruht.","agent_note":false},{"at":"2026-07-08T09:00","kind":"contact","label":"email","outcome":"automatic reply","answered":false,"text":"Erneute Erinnerung: Die Rechnung basiert auf einem geschätzten Wert, der echte Stand ist bestätigt. Bitte endlich korrigieren.","agent_note":false},{"at":"2026-07-15T06:00","kind":"billing","label":"Payment reminder","amount_eur":742,"note":"Zahlungserinnerung Jahresrechnung 2025","harmful":true},{"at":"2026-08-12T17:30","kind":"contact","label":"email","outcome":"automatic reply","answered":false,"text":"Da seit vier Monaten nichts passiert, wende ich mich jetzt an die Schlichtungsstelle Energie.","agent_note":false}],"as_of":"2026-10-15","why_flagged":["3 unanswered contacts over 49 days (14.04.–02.06.)","payment reminder while a complaint is unanswered (15.07.)"],"related_contact_ids":["K0007","K0013","K0025","K0042","K0062"],"ai":{"issue":"disputed_bill","problem":"Annual bill based on estimated meter reading","customer_quote":"Die Rechnung basiert auf einem geschätzten Wert, der echte Stand ist bestätigt","next_steps":["Replace estimated reading with confirmed meter reading on 2025 invoice","Recalculate and issue corrected annual invoice","Inform customer which invoice was corrected and what changed"],"related_messages":["M1","M2","M3","M4","M5"],"related_contact_ids":["K0007","K0013","K0025","K0042","K0062"],"quote_source":"customer"}},{"customer_id":"C007","name":"Klaus Becker","products":["power"],"status":"active","waiting_since":"2026-05-12","days_waiting":156,"money":[{"kind":"overcharged","amount_eur":510,"text":"€510 debited twice"}],"billing_stage":"money_moving","if_ignored":"another double debit on 14.11. (+€85)","so_far":{"contacts":4,"channels":{"email":2,"phone_ai":2},"dropped_calls":2,"human_contacts":0,"tickets_open":2,"tickets_closed_by_template":0,"last_contact":"2026-09-02T10:00"},"harm_actions":[{"id":"block_double_debit","label":"Stop the double debit on 14.11.","detail":"2 instalments a month since 14.05."}],"getting_worse":true,"timeline":[{"at":"2026-05-12T09:30","kind":"contact","label":"email","outcome":"automatic reply","answered":false,"text":"Seit der Umstellung werden für meinen einen Zähler zwei Abschläge abgebucht. Bitte stoppen Sie den zweiten Vertrag und erstatten Sie die doppelten Beträge.","agent_note":false},{"at":"2026-05-15T05:00","kind":"billing","label":"Second debit this month","amount_eur":85,"note":"Abschlag 2026-05","harmful":true},{"at":"2026-06-15T05:00","kind":"billing","label":"Second debit this month","amount_eur":85,"note":"Abschlag 2026-06","harmful":true},{"at":"2026-06-20T16:05","kind":"contact","label":"voice assistant","outcome":"call dropped","answered":false,"text":"[Anruf abgebrochen – Sprachassistent hat die Postleitzahl nicht erkannt]","agent_note":false},{"at":"2026-07-15T05:00","kind":"billing","label":"Second debit this month","amount_eur":85,"note":"Abschlag 2026-07","harmful":true},{"at":"2026-07-30T16:40","kind":"contact","label":"voice assistant","outcome":"call dropped","answered":false,"text":"[Anruf abgebrochen – Sprachassistent hat die Postleitzahl nicht erkannt]","agent_note":false},{"at":"2026-08-15T05:00","kind":"billing","label":"Second debit this month","amount_eur":85,"note":"Abschlag 2026-08","harmful":true},{"at":"2026-09-02T10:00","kind":"contact","label":"email","outcome":"automatic reply","answered":false,"text":"Seit Mai werden doppelte Abschläge abgebucht. Auf meine E-Mail vom 12.05. kam keine Antwort. Telefonisch komme ich nicht durch.","agent_note":false},{"at":"2026-09-15T05:00","kind":"billing","label":"Second debit this month","amount_eur":85,"note":"Abschlag 2026-09","harmful":true},{"at":"2026-10-15T05:00","kind":"billing","label":"Second debit this month","amount_eur":85,"note":"Abschlag 2026-10","harmful":true}],"as_of":"2026-10-15","why_flagged":["3 unanswered contacts over 79 days (12.05.–30.07.)","2 instalments debited per month since 2026-05 (6 months)"],"related_contact_ids":["K0017","K0034","K0055","K0079"],"ai":{"issue":"wrong_debit","problem":"Two instalments being debited for one meter since May","customer_quote":"Seit der Umstellung werden für meinen einen Zähler zwei Abschläge abgebucht","next_steps":["Stop the duplicate contract linked to this meter","Refund the duplicated monthly debits since May","Confirm to customer that the duplicate debit has been stopped"],"related_messages":["M1","M4"],"related_contact_ids":["K0017","K0079"],"quote_source":"customer"}},{"customer_id":"C039","name":"Jürgen Albrecht","products":["gas"],"status":"cancelled","waiting_since":"2026-09-16","days_waiting":29,"money":[{"kind":"overcharged","amount_eur":128,"text":"€128 debited after contract end"}],"billing_stage":"money_moving","if_ignored":"another debit after contract end around 07.11. (+€64)","so_far":{"contacts":4,"channels":{"email":3,"chatbot":1},"dropped_calls":0,"human_contacts":0,"tickets_open":3,"tickets_closed_by_template":0,"last_contact":"2026-10-07T10:15"},"harm_actions":[{"id":"stop_debits_closed_contract","label":"Stop debits on the closed contract","detail":"contract ended 31.08., €128 debited since"}],"getting_worse":true,"timeline":[{"at":"2026-09-15T05:00","kind":"billing","label":"Debited after contract end","amount_eur":64,"note":"Abschlag September","harmful":true},{"at":"2026-09-16T08:30","kind":"contact","label":"email","outcome":"automatic reply","answered":false,"text":"Mein Gasvertrag ist seit dem 31.08. beendet. Trotzdem wurde am 15.09. ein Abschlag von 64 € abgebucht. Bitte stoppen Sie die Abbuchung und erstatten Sie den Betrag.","agent_note":false},{"at":"2026-09-24T18:45","kind":"contact","label":"chatbot","outcome":"template reply","answered":false,"text":"warum wird noch abgebucht obwohl ich gekündigt habe??","agent_note":false},{"at":"2026-10-01T09:00","kind":"contact","label":"email","outcome":"automatic reply","answered":false,"text":"Zweite Nachricht: Auf meine E-Mail vom 16.09. habe ich nur eine automatische Bestätigung erhalten. Ich erwarte die Rückzahlung.","agent_note":false},{"at":"2026-10-07T05:00","kind":"billing","label":"Debited after contract end","amount_eur":64,"note":"Abschlag Oktober","harmful":true},{"at":"2026-10-07T10:15","kind":"contact","label":"email","outcome":"automatic reply","answered":false,"text":"Heute wurde schon wieder abgebucht, obwohl der Vertrag gekündigt ist. Ich übergebe die Angelegenheit jetzt meinem Rechtsanwalt.","agent_note":false}],"as_of":"2026-10-15","why_flagged":["3 unanswered contacts in 15 days (16.09.–01.10.)","instalment debited after contract end (15.09.)","instalment debited after contract end (07.10.)"],"related_contact_ids":["K0093","K0101","K0105","K0114"],"ai":{"issue":"wrong_debit","problem":"Instalments still debited after contract ended","customer_quote":"Heute wurde schon wieder abgebucht, obwohl der Vertrag gekündigt ist.","next_steps":["Stop all future instalment debits for the terminated gas contract","Refund the instalments taken after contract end","Confirm to customer that post-termination debits were stopped and refunded"],"related_messages":["M1","M2","M3","M4"],"related_contact_ids":["K0093","K0101","K0105","K0114"],"quote_source":"customer"}},{"customer_id":"C025","name":"Daniel Yilmaz","products":["power"],"status":"active","waiting_since":"2026-05-10","days_waiting":158,"money":[{"kind":"not_collected","amount_eur":504,"text":"€504 instalments never collected"}],"billing_stage":"money_moving","if_ignored":"unpaid balance grows by €72 a month and will arrive as one large bill","so_far":{"contacts":6,"channels":{"phone_human":5,"web_form":1},"dropped_calls":0,"human_contacts":5,"tickets_open":6,"tickets_closed_by_template":0,"last_contact":"2026-09-15T17:20"},"harm_actions":[],"getting_worse":false,"timeline":[{"at":"2026-05-10T17:00","kind":"contact","label":"phone (human)","outcome":"forwarded","answered":false,"text":"Kunde meldet: Abschläge werden nicht abgebucht, SEPA-Mandat liegt vor. An Fachabteilung weitergeleitet.","agent_note":true},{"at":"2026-06-12T17:30","kind":"contact","label":"phone (human)","outcome":"forwarded","answered":false,"text":"Erneuter Anruf wegen fehlender Abbuchung. Erneut an Fachabteilung weitergeleitet.","agent_note":true},{"at":"2026-07-09T18:10","kind":"contact","label":"phone (human)","outcome":"forwarded","answered":false,"text":"Kunde ruft zum dritten Mal an: keine Abschlagsabbuchung seit April. Weitergeleitet.","agent_note":true},{"at":"2026-08-11T17:45","kind":"contact","label":"phone (human)","outcome":"forwarded","answered":false,"text":"Kunde verärgert, Abschläge seit April nicht eingezogen. Fachabteilung informiert.","agent_note":true},{"at":"2026-08-20T21:30","kind":"contact","label":"web form","outcome":"automatic reply","answered":false,"text":"Mein Zugang zum Kundenportal ist gesperrt und der Passwort-Reset funktioniert nicht. Ich kann meine Abrechnungsdaten nicht sehen.","agent_note":false},{"at":"2026-09-15T17:20","kind":"contact","label":"phone (human)","outcome":"forwarded","answered":false,"text":"Kunde wiederholt Anliegen Abbuchung und Portalzugang, sehr verärgert. Weitergeleitet.","agent_note":true}],"as_of":"2026-10-15","why_flagged":["3 unanswered contacts over 60 days (10.05.–09.07.)","no instalment debited for 197 days although the contract is active"],"related_contact_ids":["K0016","K0031","K0044","K0061","K0068","K0092"],"ai":{"issue":"payment_not_collected","problem":"Instalments not being debited since April","customer_quote":"keine Abschlagsabbuchung seit April","next_steps":["Restart instalment debit for the active contract","Activate SEPA mandate on the customer's account","Inform the customer that instalment debits were reactivated"],"related_messages":["M1","M2","M3","M4","M6"],"related_contact_ids":["K0016","K0031","K0044","K0061","K0092"],"quote_source":"agent call note"}},{"customer_id":"C036","name":"Thomas Wagner","products":["power"],"status":"cancelled","waiting_since":"2026-05-20","days_waiting":148,"money":[{"kind":"disputed","amount_eur":486.9,"text":"€487 disputed but debited"}],"billing_stage":"money_moving","if_ignored":null,"so_far":{"contacts":4,"channels":{"email":3,"chatbot":1},"dropped_calls":0,"human_contacts":0,"tickets_open":3,"tickets_closed_by_template":0,"last_contact":"2026-07-20T08:45"},"harm_actions":[],"getting_worse":false,"timeline":[{"at":"2026-05-20T06:00","kind":"billing","label":"Final invoice","amount_eur":486.9,"note":"Schlussrechnung – Nachzahlung, Verbrauch 2.100 kWh über Vorjahr","harmful":false},{"at":"2026-05-20T18:30","kind":"contact","label":"email","outcome":"automatic reply","answered":false,"text":"Widerspruch gegen die Schlussrechnung: Der abgerechnete Verbrauch ist unmöglich hoch. Bitte prüfen Sie den Zählerstand.","agent_note":false},{"at":"2026-05-27T09:10","kind":"contact","label":"email","outcome":"automatic reply","answered":false,"text":"Anbei das Foto meines Zählers mit dem tatsächlichen Endstand. Bitte korrigieren Sie die Schlussrechnung und buchen Sie nichts ab.","agent_note":false},{"at":"2026-06-01T05:00","kind":"billing","label":"Disputed amount debited","amount_eur":486.9,"note":"Einzug Nachzahlung Schlussrechnung","harmful":true},{"at":"2026-06-15T21:00","kind":"contact","label":"chatbot","outcome":"template reply","answered":false,"text":"Die strittige Schlussrechnung wurde trotz Widerspruch abgebucht. Wann wird sie korrigiert?","agent_note":false},{"at":"2026-07-20T08:45","kind":"contact","label":"email","outcome":"automatic reply","answered":false,"text":"Seit zwei Monaten keine Antwort auf meinen Widerspruch. Ich fordere die Rückbuchung von 486,90 €.","agent_note":false}],"as_of":"2026-10-15","why_flagged":["3 unanswered contacts in 26 days (20.05.–15.06.)","disputed amount debited while a complaint is unanswered (01.06.)"],"related_contact_ids":["K0019","K0024","K0032","K0050"],"ai":{"issue":"disputed_bill","problem":"Disputed final invoice was charged despite objection","customer_quote":"Die strittige Schlussrechnung wurde trotz Widerspruch abgebucht.","next_steps":["Investigate and correct the final invoice for this contract","Reverse or refund the disputed debit on the final invoice","Confirm to customer that final invoice has been corrected/refunded"],"related_messages":["M1","M2","M3","M4"],"related_contact_ids":["K0019","K0024","K0032","K0050"],"quote_source":"customer"}},{"customer_id":"C017","name":"Renate Vogel","products":["power"],"status":"cancelled","waiting_since":"2026-10-01","days_waiting":14,"money":[],"billing_stage":"none","if_ignored":null,"so_far":{"contacts":4,"channels":{"chatbot":1,"phone_ai":1,"email":1,"phone_human":1},"dropped_calls":0,"human_contacts":1,"tickets_open":2,"tickets_closed_by_template":1,"last_contact":"2026-10-05T14:20"},"harm_actions":[],"getting_worse":false,"timeline":[{"at":"2026-10-01T09:12","kind":"contact","label":"chatbot","outcome":"template reply","answered":false,"text":"Mein Vertrag ist am 30.09. ausgelaufen. Wann bekomme ich die Schlussrechnung? Ich brauche sie dringend für die Vereinsabrechnung.","agent_note":false},{"at":"2026-10-02T11:40","kind":"contact","label":"voice assistant","outcome":"ticket created","answered":false,"text":"Ich rufe wegen der Schlussrechnung an, die fehlt noch. Mein Vertrag endete am 30.9.","agent_note":false},{"at":"2026-10-03T06:00","kind":"ticket","label":"Ticket closed after a template reply"},{"at":"2026-10-03T08:55","kind":"contact","label":"email","outcome":"automatic reply","answered":false,"text":"Sehr geehrte Damen und Herren, ich warte weiterhin auf meine Schlussrechnung. Bitte senden Sie sie mir zeitnah zu.","agent_note":false},{"at":"2026-10-05T14:20","kind":"contact","label":"phone (human)","outcome":"forwarded","answered":false,"text":"Kundin fragt erneut nach der Schlussrechnung. An Fachabteilung weitergeleitet.","agent_note":true}],"as_of":"2026-10-15","why_flagged":["3 unanswered contacts in 2 days (01.10.–03.10.)"],"related_contact_ids":["K0106","K0107","K0108","K0111"],"ai":{"issue":"final_invoice","problem":"Final invoice not received after contract ended","customer_quote":"ich warte weiterhin auf meine Schlussrechnung. Bitte senden Sie sie mir","next_steps":["Generate final invoice for contract that ended 30.09.","Send final invoice to customer's email and postal address","Confirm to customer that final invoice has been issued"],"related_messages":["M1","M2","M3","M4"],"related_contact_ids":["K0106","K0107","K0108","K0111"],"quote_source":"customer"}},{"customer_id":"C023","name":"Lea Schmitt","products":["power"],"status":"active","waiting_since":"2026-10-03","days_waiting":12,"money":[],"billing_stage":"none","if_ignored":null,"so_far":{"contacts":3,"channels":{"chatbot":1,"email":1,"phone_ai":1},"dropped_calls":0,"human_contacts":0,"tickets_open":1,"tickets_closed_by_template":1,"last_contact":"2026-10-09T12:30"},"harm_actions":[],"getting_worse":false,"timeline":[{"at":"2026-10-02T06:00","kind":"billing","label":"Contract notice","amount_eur":null,"note":"Neuer Stromvertrag Waldstraße 4 – Mindestlaufzeit 24 Monate","harmful":false},{"at":"2026-10-03T20:40","kind":"contact","label":"chatbot","outcome":"template reply","answered":false,"text":"Ich habe nur einen Umzug gemeldet. Warum habe ich jetzt einen neuen Vertrag mit 24 Monaten Laufzeit?","agent_note":false},{"at":"2026-10-05T09:05","kind":"contact","label":"email","outcome":"automatic reply","answered":false,"text":"Ich habe keinem neuen Vertrag zugestimmt. Bitte stornieren Sie die 24-monatige Laufzeit und führen Sie meinen bisherigen Vertrag weiter.","agent_note":false},{"at":"2026-10-09T12:30","kind":"contact","label":"voice assistant","outcome":"ticket created","answered":false,"text":"Neuer Vertrag nach Umzug ohne meine Zustimmung, 24 Monate. Das ist nicht rechtens.","agent_note":false},{"at":"2026-10-10T06:00","kind":"ticket","label":"Ticket closed after a template reply"}],"as_of":"2026-10-15","why_flagged":["3 unanswered contacts in 6 days (03.10.–09.10.)"],"related_contact_ids":["K0109","K0110","K0115"],"ai":{"issue":"contract_change","problem":"New 24-month contract created after reported move","customer_quote":"Warum habe ich jetzt einen neuen Vertrag mit 24 Monaten Laufzeit?","next_steps":["Cancel the new 24-month contract created after the move","Reinstate the customer's previous contract on their account","Confirm to the customer that the previous contract was restored"],"related_messages":["M1","M2","M3"],"related_contact_ids":["K0109","K0110","K0115"],"quote_source":"customer"}}]}</script>
+<script type="module">
+// The team lead's screen. Plain JavaScript, no build step.
+
+const DAY = 864e5;
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const t = (iso) => Date.parse(iso.length === 10 ? `${iso}T00:00Z` : `${iso}Z`);
+const day = (iso) => `${Number(iso.slice(8, 10))} ${MONTHS[Number(iso.slice(5, 7)) - 1]}`;
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+// The same name for an action before and after it is done.
+const DONE = {
+  recall_debt_collection: 'Recalled from debt collection',
+  pause_reminders: 'Payment reminders paused',
+  block_double_debit: 'Double debit stopped',
+  stop_debits_closed_contract: 'Debits on the closed contract stopped',
+  assign_me: 'You took this case',
+  assign_billing: 'Sent to the billing team',
+  resolve: 'Resolved',
+};
+
+let state = { cards: [], actions: [], asOf: null, selected: null };
+
+// Latest entry per (customer, action) decides whether it is on.
+function isOn(customerId, action) {
+  const last = state.actions.filter((a) => a.customer_id === customerId && a.action === action).at(-1);
+  return last && !last.undo ? last : null;
+}
+const time = (iso) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+// Shared demo: the cards are built into this page; each viewer's clicks stay in their own browser.
+const STORE = 'case-radar-actions';
+function savedActions() { try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch { return []; } }
+async function load() {
+  const body = JSON.parse(document.getElementById('cards-data').textContent);
+  state = { cards: body.cards, actions: savedActions(), asOf: body.as_of, selected: state.selected ?? body.cards[0]?.customer_id };
+  render();
+}
+function clearClicks() { state.actions = []; try { localStorage.removeItem(STORE); } catch {} render(); }
+
+async function act(customerId, action, undo = false) {
+  let error;
+  state.actions = [...state.actions, { customer_id: customerId, action, undo, at: new Date().toISOString() }];
+  try { localStorage.setItem(STORE, JSON.stringify(state.actions)); } catch { error = 'Your browser did not keep that click. It will be gone after a reload.'; }
+  render();
+  if (error) {
+    const p = document.createElement('p');
+    p.className = 'missing';
+    p.setAttribute('role', 'alert');
+    p.textContent = error;
+    document.getElementById('detail').prepend(p);
+  }
+}
+
+// ── the loop track: every contact and billing event on one line, first contact → today ──
+function track(card, big) {
+  const items = card.timeline;
+  const start = Math.min(t(card.waiting_since) - 10 * DAY, ...items.map((i) => t(i.at)));
+  const end = t(card.as_of) + DAY;
+  const W = big ? 700 : 300, H = big ? 64 : 16, mid = big ? 30 : 8, pad = big ? 8 : 4;
+  const x = (iso) => pad + ((t(iso) - start) / (end - start)) * (W - 2 * pad);
+  const r = big ? 6 : 3.5;
+  const marks = items.map((i) => {
+    const cx = x(i.at).toFixed(1);
+    const tip = `<title>${esc(day(i.at.slice(0, 10)))}: ${esc(i.label)}${i.outcome ? `, ${esc(i.outcome)}` : ''}${i.amount_eur ? `, €${Math.round(i.amount_eur)}` : ''}</title>`;
+    if (i.kind === 'contact') {
+      return i.answered
+        ? `<circle cx="${cx}" cy="${mid}" r="${r}" fill="var(--done)">${tip}</circle>`
+        : `<circle cx="${cx}" cy="${mid}" r="${r}" fill="var(--sheet)" stroke="var(--ink)" stroke-width="${big ? 2 : 1.5}">${tip}</circle>`;
+    }
+    if (i.kind === 'ticket') return `<rect x="${cx - r * 0.7}" y="${mid - r * 0.7}" width="${r * 1.4}" height="${r * 1.4}" fill="var(--muted)">${tip}</rect>`;
+    const color = i.harmful ? 'var(--harm)' : 'var(--muted)';
+    const y = mid + (big ? 14 : 0);
+    return `<path d="M${cx} ${y - r - 1} l${r} ${r * 1.8} h${-2 * r} z" fill="${color}" transform="${big ? '' : `translate(0 ${-r * 0.2})`}">${tip}</path>`;
+  }).join('');
+  const waitX = x(card.waiting_since).toFixed(1);
+  const today = x(card.as_of).toFixed(1);
+  const labels = big
+    ? `<text x="${waitX}" y="${H - 2}" font-size="12" fill="var(--muted)">${esc(day(card.waiting_since))}, first unanswered</text>
+       <text x="${today}" y="${H - 2}" font-size="12" fill="var(--muted)" text-anchor="end">today</text>`
+    : '';
+  return `<svg class="${big ? 'bigtrack' : 'track'}" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${items.filter((i) => i.kind === 'contact' && !i.answered).length} unanswered contacts and ${items.filter((i) => i.harmful).length} billing actions since ${esc(day(card.waiting_since))}">
+    <line x1="${waitX}" x2="${today}" y1="${mid}" y2="${mid}" stroke="var(--harm)" stroke-width="${big ? 3 : 2}" opacity="0.35"/>
+    <line x1="${today}" x2="${today}" y1="${mid - (big ? 14 : 6)}" y2="${mid + (big ? 14 : 6)}" stroke="var(--ink)" stroke-width="1.5"/>
+    ${marks}${labels}</svg>`;
+}
+
+// The legend lists only the symbols on this customer's track, in the order they first appear,
+// so the first symbol you see on the left is the first one explained.
+const SYMBOLS = {
+  unanswered: ['<circle cx="6" cy="6" r="4.5" fill="var(--sheet)" stroke="currentColor" stroke-width="1.5"/>', 'unanswered contact'],
+  solved: ['<circle cx="6" cy="6" r="5" fill="var(--done)"/>', 'solved contact'],
+  harm: ['<path d="M6 1 l5 9 h-10z" fill="var(--harm)"/>', 'money taken or demanded'],
+  billing: ['<path d="M6 1 l5 9 h-10z" fill="var(--muted)"/>', 'other billing event'],
+  ticket: ['<rect x="2" y="2" width="8" height="8" fill="var(--muted)"/>', 'ticket closed by template'],
+};
+function symbolOf(i) {
+  if (i.kind === 'contact') return i.answered ? 'solved' : 'unanswered';
+  if (i.kind === 'ticket') return 'ticket';
+  return i.harmful ? 'harm' : 'billing';
+}
+function legend(card) {
+  const order = [...new Set(card.timeline.map(symbolOf))];
+  return `<div class="legend">${order.map((k) => `<span><svg width="12" height="12">${SYMBOLS[k][0]}</svg>${SYMBOLS[k][1]}</span>`).join('')}</div>`;
+}
+
+function rowHtml(c) {
+  const resolved = isOn(c.customer_id, 'resolve');
+  const stopped = c.harm_actions.filter((h) => isOn(c.customer_id, h.id)).length;
+  const owner = isOn(c.customer_id, 'assign_me') ? 'With you' : isOn(c.customer_id, 'assign_billing') ? 'With billing team' : null;
+  const stateLine = resolved ? 'Resolved' : [stopped && stopped === c.harm_actions.length ? 'Harm stopped' : null, owner].filter(Boolean).join(', ');
+  return `<button class="row${resolved ? ' resolved' : ''}" data-id="${c.customer_id}" aria-current="${c.customer_id === state.selected}">
+    <span class="name">${esc(c.name)}</span>
+    <span class="days">${c.days_waiting} days</span>
+    <span class="problem">${esc(c.ai?.problem ?? c.money[0]?.text ?? 'Not analysed yet')}</span>
+    ${track(c, false)}
+    ${stateLine ? `<span class="state">${esc(stateLine)}</span>` : ''}
+  </button>`;
+}
+
+function renderQueue() {
+  const worse = state.cards.filter((c) => c.getting_worse && !(c.harm_actions.every((h) => isOn(c.customer_id, h.id))));
+  const rest = state.cards.filter((c) => !worse.includes(c));
+  const harmLeft = worse.length;
+  document.getElementById('summary').innerHTML = harmLeft
+    ? `${state.cards.length} customers stuck on ${esc(day(state.asOf))}. <strong>${harmLeft} still getting worse.</strong>`
+    : `${state.cards.length} customers stuck on ${esc(day(state.asOf))}. Nothing is getting worse right now.`;
+  document.getElementById('queue').innerHTML =
+    (worse.length ? `<h2 class="group worse">Still getting worse <span>${worse.length}</span></h2>${worse.map(rowHtml).join('')}` : '') +
+    `<h2 class="group">Waiting for an answer <span>${rest.length}</span></h2>${rest.map(rowHtml).join('')}`;
+}
+
+function renderDetail() {
+  const c = state.cards.find((x) => x.customer_id === state.selected);
+  const el = document.getElementById('detail');
+  if (!c) { el.innerHTML = '<div class="empty"><p>Choose a customer on the left.</p></div>'; return; }
+  const id = c.customer_id;
+  const ai = c.ai;
+  const so = c.so_far;
+  const facts = [id, c.products.join(', '), c.status === 'cancelled' ? 'contract cancelled' : 'active contract'];
+
+  const quote = ai
+    ? `<p class="quote"><mark>${esc(ai.customer_quote)}</mark><span class="source">${ai.quote_source === 'agent call note' ? 'From an agent\'s call note, not the customer\'s own words' : 'The customer, in their own words'}</span></p>`
+    : '';
+  const problem = ai
+    ? `<h3>${esc(ai.problem)}</h3>${quote}`
+    : `<p class="missing">${c.ai_error ? 'The AI answer failed our checks. Read the messages below yourself.' : 'No AI summary yet. Run node scripts/run-ai.mjs.'}</p>`;
+
+  const harm = c.harm_actions.length
+    ? `<div class="harm${c.harm_actions.every((h) => isOn(id, h.id)) ? ' stopped' : ''}"><h4>${c.harm_actions.every((h) => isOn(id, h.id)) ? 'Harm stopped' : 'Stop the harm first'}</h4>${c.harm_actions.map((h) => {
+        const on = isOn(id, h.id);
+        return `<div class="harm-item">${on
+          ? `<span class="done">${esc(DONE[h.id])} at ${time(on.at)}</span> <button class="undo" data-act="${h.id}" data-undo="1">Undo</button>`
+          : `<button class="btn danger" data-act="${h.id}">${esc(h.label)}</button>`}<p>${esc(h.detail)}</p></div>`;
+      }).join('')}</div>`
+    : `<div class="harm calm"><h4>Nothing here gets worse on its own</h4><p>${esc(c.if_ignored ? `But: ${c.if_ignored}.` : 'Start with the next steps.')}</p></div>`;
+
+  const steps = ai
+    ? `<h4>Next steps</h4><p class="by-ai">Suggested by AI from the customer's messages. You decide.</p><ul class="steps">${ai.next_steps.map((s, i) => {
+        const on = isOn(id, `step_${i}`);
+        return `<li><input type="checkbox" id="s${i}" data-step="${i}" ${on ? 'checked' : ''}><label for="s${i}" class="${on ? 'checked' : ''}">${esc(s)}</label></li>`;
+      }).join('')}</ul>`
+    : '';
+  const ownerOn = isOn(id, 'assign_me') ? 'assign_me' : isOn(id, 'assign_billing') ? 'assign_billing' : null;
+  const resolved = isOn(id, 'resolve');
+  const owners = `<div class="owners">${ownerOn
+    ? `<span class="done">${esc(DONE[ownerOn])}</span> <button class="undo" data-act="${ownerOn}" data-undo="1">Undo</button>`
+    : `<button class="btn" data-act="assign_me">Take this case</button><button class="btn quiet" data-act="assign_billing">Send to the billing team</button>`}
+    ${resolved ? `<span class="done">Resolved at ${time(resolved.at)}</span> <button class="undo" data-act="resolve" data-undo="1">Undo</button>` : `<button class="btn quiet" data-act="resolve">Mark as resolved</button>`}</div>`;
+
+  const history = c.timeline.slice().reverse().map((i) => {
+    const cls = i.kind === 'contact' ? (i.answered ? 'answered' : '') : i.harmful ? 'harmful' : 'system';
+    const what = i.kind === 'contact' ? `${esc(i.label)}, ${esc(i.outcome)}` : `${esc(i.label)}${i.amount_eur ? `, €${Math.round(Math.abs(i.amount_eur))}` : ''}`;
+    const said = i.kind === 'contact' ? `<p class="said${i.agent_note ? ' note' : ''}">${i.agent_note ? 'Agent note: ' : ''}${esc(i.text)}</p>` : '';
+    return `<li class="${cls}"><span class="when">${esc(day(i.at.slice(0, 10)))}</span><span class="what">${what}</span>${said}</li>`;
+  }).join('');
+
+  el.innerHTML = `
+    <button class="undo to-list" data-nav="list">↑ All cases</button>
+    <div class="who"><h2>${esc(c.name)}</h2><span class="facts">${facts.map((f) => `<span>${esc(f)}</span>`).join('')}</span></div>
+    <p class="headline">Waiting ${c.days_waiting} days${c.money[0] ? `, <span class="money">${esc(c.money[0].text)}</span>` : ''}. ${so.contacts} contacts${so.human_contacts ? `, ${so.human_contacts} with a person who forwarded it` : ', never with a person'}.</p>
+    ${track(c, true)}
+    ${legend(c)}
+    <div class="problem-block">${problem}</div>
+    ${harm}
+    ${steps}
+    ${owners}
+    <h4>What happened</h4>
+    <ul class="history">${history}</ul>
+    <h4>Why this case was flagged</h4>
+    <ul class="why">${c.why_flagged.map((w) => `<li>${esc(w)}</li>`).join('')}</ul>`;
+}
+
+function render() { renderQueue(); renderDetail(); }
+
+document.addEventListener('click', (e) => {
+  const row = e.target.closest('.row');
+  if (row) { state.selected = row.dataset.id; render(); document.getElementById('detail').scrollIntoView({ block: matchMedia('(max-width: 900px)').matches ? 'start' : 'nearest' }); return; }
+  if (e.target.closest('[data-nav="list"]')) { document.getElementById('queue').scrollIntoView({ block: 'start' }); return; }
+  if (e.target.closest('#clear-clicks')) { clearClicks(); return; }
+  const b = e.target.closest('[data-act]');
+  if (b) act(state.selected, b.dataset.act, b.dataset.undo === '1');
+});
+document.addEventListener('change', (e) => {
+  if (e.target.dataset.step !== undefined) act(state.selected, `step_${e.target.dataset.step}`, !e.target.checked);
+});
+// ↑ / ↓ move through the queue in the order shown
+document.addEventListener('keydown', (e) => {
+  if (!['ArrowDown', 'ArrowUp'].includes(e.key) || e.target.closest('input')) return;
+  const ids = [...document.querySelectorAll('.row')].map((r) => r.dataset.id);
+  const i = ids.indexOf(state.selected) + (e.key === 'ArrowDown' ? 1 : -1);
+  if (ids[i]) { e.preventDefault(); state.selected = ids[i]; render(); document.querySelector(`.row[data-id="${ids[i]}"]`).focus(); }
+});
+
+load();
+
+</script>
+</body>
+</html>
