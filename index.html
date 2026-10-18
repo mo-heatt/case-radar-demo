@@ -39,6 +39,27 @@ body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.5 va
 button { font: inherit; color: inherit; }
 :focus-visible { outline: 3px solid var(--act); outline-offset: 2px; }
 
+/* ── the story: one invented customer, from first call to debt collection ── */
+.story { margin: 1.25rem 1.5rem 0.5rem; padding: 1.5rem 1.75rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; }
+.story .eyebrow { margin: 0 0 0.4rem; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--act); }
+.story h1 { margin: 0 0 1.25rem; font-size: clamp(1.4rem, 2.6vw, 2rem); line-height: 1.2; max-width: 34ch; text-wrap: balance; }
+.story h2 { margin: 0 0 0.3rem; font-size: 1rem; }
+.story .meet { margin: 0 0 0.75rem; max-width: 65ch; }
+.flow { list-style: none; margin: 0 0 1rem; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.6rem; }
+.flow li { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.75rem 0.9rem; background: var(--paper); border: 1px solid var(--rule); border-top: 4px solid var(--rule); border-radius: 6px; font-size: 0.92rem; }
+.flow li span { color: var(--muted); }
+.flow li.bad { border-top-color: var(--harm); }
+.flow li.bad b { color: var(--harm); }
+.flow li.good { border-top-color: var(--act); background: var(--act-soft); }
+.flow li.good b { color: var(--act); }
+.her-words { margin: 0 0 1.5rem; padding-left: 1rem; border-left: 3px solid var(--mark); font: italic 1.1rem/1.55 var(--serif); max-width: 62ch; }
+.her-words span { display: block; margin-top: 0.25rem; font: 0.85rem/1.4 var(--sans); color: var(--muted); }
+.story-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+.story-cols p { margin: 0; font-size: 0.92rem; color: var(--muted); }
+.story-cols b { color: var(--ink); }
+.story-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.25rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+.story-foot p { margin: 0; flex: 1 1 30ch; font-size: 0.85rem; color: var(--muted); }
+
 .top { display: flex; align-items: baseline; gap: 1.25rem; padding: 1.25rem 1.5rem 0.75rem; }
 .top h1 { margin: 0; font-size: 1.5rem; }
 .summary { margin: 0; color: var(--muted); }
@@ -132,6 +153,8 @@ h4 { margin: 2.25rem 0 0.6rem; font-size: 1rem; }
   .top { flex-direction: column; gap: 0.25rem; padding: 1rem; }
   .row, .group { padding-left: 1rem; padding-right: 1rem; margin-left: 0; margin-right: 0; }
   .group { padding-top: 0.5rem; }
+  .story { margin: 1rem 1rem 0.5rem; padding: 1.25rem 1rem; }
+  .flow, .story-cols { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: no-preference) {
   .done { animation: settle 300ms ease-out; }
@@ -150,6 +173,38 @@ h4 { margin: 2.25rem 0 0.6rem; font-size: 1rem; }
 </head>
 <body>
 <p class="demo-note"><span><strong>Demo with invented customers.</strong> Click anything: your clicks are saved only in your own browser and reach no real system.</span><button class="undo" id="clear-clicks">Clear my clicks</button></p>
+<section class="story" aria-label="The story">
+    <p class="eyebrow">Maingau Case Radar · the problem we are solving</p>
+    <h1>Some customers complain again and again, and nobody sees it, while the billing system keeps sending reminders.</h1>
+
+    <p class="meet"><b>Meet Melanie Hoffmann.</b> Power customer since November 2025. In July she gets two bills for one flat.</p>
+    <ol class="flow">
+      <li><b>4 Jul · She calls</b><span>The voice assistant opens a ticket. The next day it is closed with a template reply. Nothing is fixed.</span></li>
+      <li><b>12–21 Jul · She asks twice more</b><span>A callback request and an email. Both get automatic replies. On 20 Jul a payment reminder arrives for the wrong bill.</span></li>
+      <li class="bad"><b>10 Sep · Debt collection</b><span>€303 is handed to a collection agency. 5 contacts, never with a person. Her answer: „Das ist unseriös.“</span></li>
+      <li class="good"><b>With Case Radar · 20 Jul</b><span>Her case is flagged 52 days before the collection letter. The team lead sees the problem in her words, one button to stop the harm, and the next steps.</span></li>
+    </ol>
+    <blockquote class="her-words">„Ich habe die doppelte Rechnung schon zweimal reklamiert. Warum bekomme ich jetzt eine Mahnung?“<span>“I've complained about the double bill twice already. Why am I getting a reminder now?” Her email on 21 Jul.</span></blockquote>
+
+    <div class="story-cols">
+      <div>
+        <h2>Why it happens</h2>
+        <p>In the reviews we read, each channel answers on its own: voice assistant, web form, email. Nobody sees the same customer coming back, and billing keeps sending reminders and collection letters while the complaint waits.</p>
+      </div>
+      <div>
+        <h2>What the radar does</h2>
+        <p>It reads contacts, tickets and billing together and flags a customer after 3 unanswered contacts, or when money is taken or demanded during an open complaint. The AI writes the problem and next steps from her pseudonymised messages; code checks every answer.</p>
+      </div>
+      <div>
+        <h2>What we measured</h2>
+        <p>On 60 test customers, replayed day by day: <b>8 of 8 stuck customers caught</b> before they escalated, <b>0 false alarms</b>, a median <b>82 days</b> of warning. Still open: whether Maingau's systems already show this.</p>
+      </div>
+    </div>
+    <div class="story-foot">
+      <button class="btn" type="button" data-open="C022">Open Melanie's case</button>
+      <p>Melanie and all customers here are invented. Their stories follow patterns in public Trustpilot reviews of Maingau. The figures come from test data, not from Maingau.</p>
+    </div>
+  </section>
 <header class="top">
   <h1>Stuck cases</h1>
   <p id="summary" class="summary"></p>
@@ -359,6 +414,8 @@ document.addEventListener('click', (e) => {
   if (row) { state.selected = row.dataset.id; render(); document.getElementById('detail').scrollIntoView({ block: matchMedia('(max-width: 900px)').matches ? 'start' : 'nearest' }); return; }
   if (e.target.closest('[data-nav="list"]')) { document.getElementById('queue').scrollIntoView({ block: 'start' }); return; }
   if (e.target.closest('#clear-clicks')) { clearClicks(); return; }
+  const open = e.target.closest('[data-open]');
+  if (open) { state.selected = open.dataset.open; render(); document.getElementById('detail').scrollIntoView({ block: 'start' }); return; }
   const b = e.target.closest('[data-act]');
   if (b) act(state.selected, b.dataset.act, b.dataset.undo === '1');
 });
